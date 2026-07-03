@@ -256,6 +256,7 @@ export const ArrowUpRight = (p: IconProps) => (
   </Svg>
 )
 
+<<<<<<< HEAD
 export const Lock = (p: IconProps) => (
   <Svg {...p}>
     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -284,5 +285,34 @@ export const Grid2X2 = (p: IconProps) => (
     <rect width="7" height="7" x="14" y="3" rx="1" />
     <rect width="7" height="7" x="14" y="14" rx="1" />
     <rect width="7" height="7" x="3" y="14" rx="1" />
+  </Svg>
+)
+
+export const ChevronLeft = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m15 18-6-6 6-6" />
+  </Svg>
+)
+
+export const Navigation = (p: IconProps) => (
+  <Svg {...p}>
+    <polygon points="3 11 22 2 13 21 11 13 3 11" />
+  </Svg>
+)
+
+export const Fuel = (p: IconProps) => (
+  <Svg {...p}>
+    <line x1="3" x2="15" y1="22" y2="22" />
+    <line x1="4" x2="14" y1="9" y2="9" />
+    <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18" />
+    <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5" />
+  </Svg>
+)
+
+export const Map = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
+    <path d="M15 5.764v15" />
+    <path d="M9 3.236v15" />
   </Svg>
 )
