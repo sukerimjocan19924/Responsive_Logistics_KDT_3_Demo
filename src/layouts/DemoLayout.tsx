@@ -17,7 +17,7 @@ import {
 } from '../components/icons'
 
 /** 메인 랜딩 사이트 주소 — 배포 시 실제 URL로 교체 */
-const MAIN_SITE_URL = 'http://localhost:4600'
+const MAIN_SITE_URL = 'https://responsive-logistics-kdt-3.vercel.app/'
 
 interface NavItem {
   to: string
