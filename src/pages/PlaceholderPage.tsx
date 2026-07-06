@@ -479,7 +479,7 @@ function DriverPage() {
           </div>
           <div className="divide-y divide-slate-200 bg-white">
             {driverRows.map(
-              ({ name, route, vehicle, eta, etaMinutes, status }) => (
+              ({ name, route, vehicle, eta, status }) => (
                 <article
                   key={name}
                   className="grid gap-3 px-5 py-4 text-sm md:grid-cols-[1.2fr_1fr_0.8fr_0.8fr] md:items-center"
