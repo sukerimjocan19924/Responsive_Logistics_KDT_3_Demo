@@ -166,9 +166,14 @@ export default function OperatePage() {
     <div ref={scrollRef} className="h-[calc(100vh-3.5rem)] overflow-y-auto lg:h-screen">
       <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {/* header */}
-        <div className="mb-2">
-          <h1 className="text-[30px] font-black tracking-tight text-slate-950">운영</h1>
-          <p className="mt-1 text-[14px] font-medium text-slate-500">
+        <div className="mb-8 border-b border-slate-200/60 pb-6">
+          <h1 className="flex items-center gap-3 text-[36px] font-black tracking-tight text-slate-900">
+            <span className="bg-gradient-to-r from-sky-500 to-indigo-500 bg-clip-text text-transparent">운영</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-[12px] font-bold tracking-[0.2em] text-slate-500 uppercase">
+              Operations
+            </span>
+          </h1>
+          <p className="mt-2 text-[15px] font-medium text-slate-500">
             주문 접수부터 배송, 경로 최적화까지 운영 전 과정을 이 페이지에서 확인하고 관리하세요.
           </p>
         </div>
