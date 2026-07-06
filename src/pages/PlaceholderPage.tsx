@@ -1,5 +1,16 @@
 import { Link, useParams } from 'react-router-dom'
-import { ChevronRight, LayoutDashboard } from '../components/icons'
+import {
+  Activity,
+  Building,
+  ChevronRight,
+  Clock,
+  LayoutDashboard,
+  MapPin,
+  Thermometer,
+  Truck,
+  Users,
+  Warehouse,
+} from '../components/icons'
 
 /** 사이드바 각 메뉴에 대응하는 라벨 (팀원이 페이지를 채울 때 참고) */
 const SECTION_LABELS: Record<string, { label: string; desc: string }> = {
@@ -13,37 +24,157 @@ const SECTION_LABELS: Record<string, { label: string; desc: string }> = {
   settings: { label: '설정', desc: '시스템 환경 설정 페이지입니다.' },
 }
 
-/**
- * 준비 중 페이지 골조(스켈레톤).
- * 대시보드 외 메뉴는 팀에서 채워 넣을 슬롯으로, 레이아웃 골격만 표시한다.
- */
-export default function PlaceholderPage() {
-  const { section = '' } = useParams()
-  const meta = SECTION_LABELS[section]
+type StatTone = 'sky' | 'violet' | 'cyan' | 'amber' | 'emerald'
+type StatItem = { label: string; value: string; caption: string; icon: typeof Building; tone: StatTone }
+
+const warehouseStats: StatItem[] = [
+  { label: '운영 창고', value: '8개', caption: '수도권 5 · 지방 3', icon: Building, tone: 'sky' },
+  { label: '평균 적재율', value: '74%', caption: '전일 대비 +3.2%', icon: Warehouse, tone: 'violet' },
+  { label: '온도 정상률', value: '99.2%', caption: '이탈 알림 1건', icon: Thermometer, tone: 'cyan' },
+]
+
+const warehouseRows = [
+  { name: '강남 냉장 센터', zone: '서울 강남구', temp: '2.8°C', capacity: 82, status: '정상' },
+  { name: '인천 냉동 허브', zone: '인천 서구', temp: '-18.4°C', capacity: 68, status: '정상' },
+  { name: '수원 신선 보관소', zone: '경기 수원시', temp: '4.1°C', capacity: 91, status: '혼잡' },
+  { name: '대전 크로스독', zone: '대전 유성구', temp: '3.6°C', capacity: 57, status: '정상' },
+]
+
+const driverStats: StatItem[] = [
+  { label: '전체 기사', value: '42명', caption: '정규 32 · 협력 10', icon: Users, tone: 'amber' },
+  { label: '운행 중', value: '26명', caption: '냉장 18 · 냉동 8', icon: Truck, tone: 'sky' },
+  { label: '배차 가능', value: '9명', caption: '즉시 투입 가능', icon: Activity, tone: 'emerald' },
+]
+
+const driverRows = [
+  { name: '김소연', route: '서울 A-12', vehicle: '냉장 1톤', eta: '12분', status: '배송 중' },
+  { name: '박지훈', route: '경기 B-07', vehicle: '냉동 2.5톤', eta: '대기', status: '배차 가능' },
+  { name: '이민재', route: '인천 C-03', vehicle: '냉장 1톤', eta: '28분', status: '회차 중' },
+  { name: '최유나', route: '충청 D-02', vehicle: '냉동 5톤', eta: '대기', status: '점검 중' },
+]
+
+const toneClass: Record<StatTone, { box: string; text: string }> = {
+  sky: { box: 'bg-sky-50 ring-sky-100', text: 'text-sky-600' },
+  violet: { box: 'bg-violet-50 ring-violet-100', text: 'text-violet-600' },
+  cyan: { box: 'bg-cyan-50 ring-cyan-100', text: 'text-cyan-600' },
+  amber: { box: 'bg-amber-50 ring-amber-100', text: 'text-amber-600' },
+  emerald: { box: 'bg-emerald-50 ring-emerald-100', text: 'text-emerald-600' },
+}
+
+const statusClass = (status: string) => {
+  if (status === '정상' || status === '배차 가능') return 'bg-emerald-50 text-emerald-700 ring-emerald-100'
+  if (status === '혼잡' || status === '배송 중') return 'bg-sky-50 text-sky-700 ring-sky-100'
+  if (status === '회차 중') return 'bg-violet-50 text-violet-700 ring-violet-100'
+  return 'bg-amber-50 text-amber-700 ring-amber-100'
+}
+
+function StatCard({ label, value, caption, icon: Icon, tone }: StatItem) {
+  const colors = toneClass[tone]
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-      <div className="flex items-center gap-2 text-[12px] text-slate-400">
-        <Link to="/" className="transition-colors hover:text-sky-600">
-          대시보드
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <span className="font-medium text-slate-600">{meta?.label ?? '알 수 없는 페이지'}</span>
+    <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60">
+      <div className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl ring-1 ${colors.box} ${colors.text}`}>
+        <Icon className="h-5 w-5" />
+      </div>
+      <p className="text-[13px] font-bold text-slate-500">{label}</p>
+      <p className="mt-2 text-3xl font-black tracking-tight text-slate-950">{value}</p>
+      <p className="mt-1 text-[12px] font-semibold text-slate-400">{caption}</p>
+    </article>
+  )
+}
+
+      function WarehousePage() {
+  return (
+    <>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {warehouseStats.map((stat) => <StatCard key={stat.label} {...stat} />)}
       </div>
 
-      <div className="mt-4">
-        <span className="inline-block rounded-full bg-amber-50 px-3 py-1 text-[12px] font-bold text-amber-600 ring-1 ring-amber-200">
-          골조(스켈레톤) 단계 — 준비 중
-        </span>
-        <h1 className="mt-3 text-[24px] font-extrabold tracking-tight text-slate-900">
-          {meta?.label ?? '페이지를 찾을 수 없습니다'}
-        </h1>
-        <p className="mt-1.5 text-[14px] text-slate-500">
-          {meta?.desc ?? '주소를 다시 확인해 주세요.'} 이 화면은 팀에서 채워 넣을 페이지 골조입니다.
-        </p>
+      <section className="mt-5 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-sky-500">Warehouse Monitor</p>
+            <h2 className="mt-2 text-xl font-black text-slate-950">창고별 재고·온도 현황</h2>
+          </div>
+          <button type="button" className="rounded-2xl bg-sky-500 px-4 py-2 text-sm font-extrabold text-white shadow-lg shadow-sky-500/25">+ 창고 등록</button>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          {warehouseRows.map(({ name, zone, temp, capacity, status }) => (
+            <article key={name} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-extrabold text-slate-950">{name}</h3>
+                  <p className="mt-1 flex items-center gap-2 text-sm font-medium text-slate-500"><MapPin className="h-4 w-4" />{zone}</p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-extrabold ring-1 ${statusClass(status)}`}>{status}</span>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+                  <p className="text-slate-500">현재 온도</p>
+                  <p className="mt-1 text-lg font-black text-cyan-600">{temp}</p>
+                </div>
+                <div className="rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+                  <p className="text-slate-500">적재율</p>
+                  <p className="mt-1 text-lg font-black text-slate-950">{capacity}%</p>
+                </div>
+              </div>
+              <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-200">
+                <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-cyan-300" style={{ width: `${capacity}%` }} />
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </>
+  )
+}
+
+function DriverPage() {
+  return (
+    <>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {driverStats.map((stat) => <StatCard key={stat.label} {...stat} />)}
       </div>
 
-      {/* skeleton mock — 채워질 레이아웃의 뼈대 미리보기 */}
+       <section className="mt-5 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/70">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-amber-500">Driver Dispatch</p>
+            <h2 className="mt-2 text-xl font-black text-slate-950">기사 배정·운행 현황</h2>
+          </div>
+          <button type="button" className="rounded-2xl bg-amber-500 px-4 py-2 text-sm font-extrabold text-white shadow-lg shadow-amber-500/25">+ 기사 등록</button>
+        </div>
+
+        <div className="overflow-hidden rounded-3xl border border-slate-200">
+          <div className="grid grid-cols-[1.2fr_1fr_0.8fr_0.8fr] bg-slate-50 px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-slate-400 max-md:hidden">
+            <span>기사</span><span>담당 경로</span><span>도착 예정</span><span>상태</span>
+          </div>
+          <div className="divide-y divide-slate-200 bg-white">
+            {driverRows.map(({ name, route, vehicle, eta, status }) => (
+              <article key={name} className="grid gap-3 px-5 py-4 text-sm md:grid-cols-[1.2fr_1fr_0.8fr_0.8fr] md:items-center">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-900 text-sm font-black text-white">{name.slice(0, 1)}</div>
+                  <div>
+                    <p className="font-extrabold text-slate-950">{name}</p>
+                    <p className="text-xs font-semibold text-slate-400">{vehicle}</p>
+                  </div>
+                </div>
+                <p className="font-bold text-slate-600">{route}</p>
+                <p className="flex items-center gap-2 font-bold text-slate-600"><Clock className="h-4 w-4 text-slate-400" />{eta}</p>
+                <span className={`w-fit rounded-full px-3 py-1 text-xs font-extrabold ring-1 ${statusClass(status)}`}>{status}</span>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
+  )
+}
+
+function SkeletonPage() {
+  return (
+    <>
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3" aria-hidden="true">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="h-28 animate-pulse rounded-2xl border border-slate-200 bg-white p-5">
@@ -56,10 +187,43 @@ export default function PlaceholderPage() {
         <div className="h-4 w-40 rounded bg-slate-200/80" />
         <div className="mt-3 h-3 w-64 rounded bg-slate-100" />
         <div className="mt-8 space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-10 rounded-lg bg-slate-100" />
-          ))}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-10 rounded-lg bg-slate-100" />)}
         </div>
+      </div>
+
+      </>
+  )
+}
+
+/**
+ * 준비 중 페이지 골조(스켈레톤).
+ * 창고 관리와 기사 관리는 바로 시연 가능한 간단 화면으로 표시하고, 나머지 메뉴는 골조만 표시한다.
+ */
+export default function PlaceholderPage() {
+  const { section = '' } = useParams()
+  const meta = SECTION_LABELS[section]
+  const isResourcePage = section === 'warehouses' || section === 'drivers'
+
+  return (
+    <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <div className="flex items-center gap-2 text-[12px] text-slate-400">
+        <Link to="/" className="transition-colors hover:text-sky-600">대시보드</Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <span className="font-medium text-slate-600">{meta?.label ?? '알 수 없는 페이지'}</span>
+      </div>
+
+      <div className="mt-4 rounded-[32px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-sm shadow-slate-200/70">
+        <span className={`inline-block rounded-full px-3 py-1 text-[12px] font-bold ring-1 ${isResourcePage ? 'bg-emerald-50 text-emerald-600 ring-emerald-200' : 'bg-amber-50 text-amber-600 ring-amber-200'}`}>
+          {isResourcePage ? '시연용 화면 구성 완료' : '골조(스켈레톤) 단계 — 준비 중'}
+        </span>
+        <h1 className="mt-3 text-[24px] font-extrabold tracking-tight text-slate-900 sm:text-3xl">{meta?.label ?? '페이지를 찾을 수 없습니다'}</h1>
+        <p className="mt-1.5 max-w-2xl text-[14px] leading-6 text-slate-500">
+          {meta?.desc ?? '주소를 다시 확인해 주세요.'} {isResourcePage ? '핵심 지표, 목록, 상태 배지를 한 화면에서 확인할 수 있도록 구성했습니다.' : '이 화면은 팀에서 채워 넣을 페이지 골조입니다.'}
+        </p>
+      </div>
+
+      <div className="mt-6">
+        {section === 'warehouses' ? <WarehousePage /> : section === 'drivers' ? <DriverPage /> : <SkeletonPage />}
       </div>
 
       <Link
