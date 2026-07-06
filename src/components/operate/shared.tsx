@@ -29,8 +29,8 @@ export const VALUE_TINT: Record<Tint, string> = {
 export function PageSectionHeader({ title, desc }: { title: string; desc: string }) {
   return (
     <div>
-      <h2 className="text-[22px] font-extrabold tracking-tight text-slate-900 sm:text-[24px]">{title}</h2>
-      <p className="mt-1 text-[13px] text-slate-500">{desc}</p>
+      <h2 className="text-[26px] font-black tracking-tight text-slate-950 sm:text-[28px]">{title}</h2>
+      <p className="mt-1 text-[14px] font-medium text-slate-500">{desc}</p>
     </div>
   )
 }

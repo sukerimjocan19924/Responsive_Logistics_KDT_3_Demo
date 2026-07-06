@@ -1,5 +1,5 @@
 import { useEffect, useRef, type CSSProperties } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   Activity,
   Building,
@@ -315,64 +315,150 @@ function PageHeader({
   );
 }
 
-function ResourcePage({
-  activeSection,
-}: {
-  activeSection: "warehouses" | "drivers";
-}) {
+const PATH_TO_SECTION_RES: Record<string, string> = {
+  '/warehouses': 'warehouses',
+  '/drivers': 'drivers',
+};
+
+const SECTION_ORDER_RES = [
+  { id: 'warehouses', path: '/warehouses' },
+  { id: 'drivers', path: '/drivers' },
+];
+
+const SCROLL_OFFSET = 24;
+const SPY_LINE_OFFSET = 96;
+
+function ResourcePage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const warehouseRef = useRef<HTMLElement>(null);
   const driverRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    const target =
-      activeSection === "drivers" ? driverRef.current : warehouseRef.current;
-    const timeoutId = window.setTimeout(() => {
-      target?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 120);
+  const skipNextScrollRef = useRef(false);
+  const isProgrammaticScrollRef = useRef(false);
+  const activePathRef = useRef(location.pathname);
 
-    return () => window.clearTimeout(timeoutId);
-  }, [activeSection]);
+  const sectionRefs: Record<string, React.RefObject<HTMLElement>> = {
+    'warehouses': warehouseRef,
+    'drivers': driverRef,
+  };
+
+  useEffect(() => {
+    activePathRef.current = location.pathname;
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (skipNextScrollRef.current) {
+      skipNextScrollRef.current = false;
+      return;
+    }
+
+    const container = scrollRef.current;
+    const sectionId = PATH_TO_SECTION_RES[location.pathname];
+    const target = sectionId ? sectionRefs[sectionId]?.current : null;
+    if (!container || !target) return;
+
+    const targetRect = target.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const targetY = Math.max(0, container.scrollTop + (targetRect.top - containerRect.top) - SCROLL_OFFSET);
+    const reduceMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (Math.abs(container.scrollTop - targetY) < 1) return;
+
+    isProgrammaticScrollRef.current = true;
+    const clearFlag = () => { isProgrammaticScrollRef.current = false; };
+    
+    if ('onscrollend' in container) {
+      container.addEventListener('scrollend', clearFlag, { once: true });
+    } else {
+      setTimeout(clearFlag, 700);
+    }
+
+    container.scrollTo({ top: targetY, behavior: reduceMotion ? 'auto' : 'smooth' });
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const sections = SECTION_ORDER_RES.map((s) => ({ path: s.path, el: sectionRefs[s.id]?.current })).filter(
+      (s): s is { path: string; el: HTMLElement } => !!s.el,
+    );
+    if (sections.length === 0) return;
+
+    let ticking = false;
+
+    const updateActivePath = () => {
+      ticking = false;
+      if (isProgrammaticScrollRef.current) return;
+
+      const probeLine = container.getBoundingClientRect().top + SPY_LINE_OFFSET;
+
+      let current = sections[0];
+      for (const s of sections) {
+        if (s.el.getBoundingClientRect().top <= probeLine) current = s;
+      }
+
+      if (current.path !== activePathRef.current) {
+        activePathRef.current = current.path;
+        skipNextScrollRef.current = true;
+        navigate(current.path, { replace: true, preventScrollReset: true });
+      }
+    };
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(updateActivePath);
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [navigate]);
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-      <section>
-        <h1 className="text-[30px] font-black tracking-tight text-slate-950">
-          자원
-        </h1>
-        <p className="mt-2 text-[14px] font-medium text-slate-500">
-          창고 재고·온도부터 기사 배정과 운행 현황까지 자원 관리 과정을 이
-          페이지에서 확인하고 관리하세요.
-        </p>
-      </section>
+    <div ref={scrollRef} className="h-[calc(100vh-3.5rem)] overflow-y-auto lg:h-screen">
+      <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <section>
+          <h1 className="text-[30px] font-black tracking-tight text-slate-950">
+            자원
+          </h1>
+          <p className="mt-2 text-[14px] font-medium text-slate-500">
+            창고 재고·온도부터 기사 배정과 운행 현황까지 자원 관리 과정을 이
+            페이지에서 확인하고 관리하세요.
+          </p>
+        </section>
 
-      <section ref={warehouseRef} className="mt-8 scroll-mt-6">
-        <PageHeader
-          eyebrow="자원 관리"
-          title="창고 관리"
-          desc="창고별 재고·온도 현황을 확인하고 신규 창고를 등록할 수 있습니다."
-          actionLabel="신규 창고"
-          actionTone="sky"
-        />
-        <div className="mt-6">
-          <WarehousePage />
-        </div>
-      </section>
+        <section ref={warehouseRef} className="mt-8 scroll-mt-6">
+          <PageHeader
+            eyebrow="자원 관리"
+            title="창고 관리"
+            desc="창고별 재고·온도 현황을 확인하고 신규 창고를 등록할 수 있습니다."
+            actionLabel="신규 창고"
+            actionTone="sky"
+          />
+          <div className="mt-6">
+            <WarehousePage />
+          </div>
+        </section>
 
-      <section
-        ref={driverRef}
-        className="mt-14 scroll-mt-6 border-t border-slate-200 pt-12"
-      >
-        <PageHeader
-          eyebrow="자원 관리"
-          title="기사 관리"
-          desc="배송 기사 배정과 운행 현황을 이어서 확인하고 관리할 수 있습니다."
-          actionLabel="신규 기사"
-          actionTone="amber"
-        />
-        <div className="mt-6">
-          <DriverPage />
-        </div>
-      </section>
+        <section
+          ref={driverRef}
+          className="mt-14 scroll-mt-6 border-t border-slate-200 pt-12"
+        >
+          <PageHeader
+            eyebrow="자원 관리"
+            title="기사 관리"
+            desc="배송 기사 배정과 운행 현황을 이어서 확인하고 관리할 수 있습니다."
+            actionLabel="신규 기사"
+            actionTone="amber"
+          />
+          <div className="mt-6">
+            <DriverPage />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
@@ -558,7 +644,7 @@ export default function PlaceholderPage() {
   const isResourcePage = section === "warehouses" || section === "drivers";
 
   if (isResourcePage) {
-    return <ResourcePage activeSection={section} />;
+    return <ResourcePage />;
   }
 
   return (

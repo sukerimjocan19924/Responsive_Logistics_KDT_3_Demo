@@ -167,8 +167,8 @@ export default function OperatePage() {
       <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {/* header */}
         <div className="mb-2">
-          <h1 className="text-[24px] font-extrabold tracking-tight text-slate-900">운영</h1>
-          <p className="mt-1 text-[13px] text-slate-500">
+          <h1 className="text-[30px] font-black tracking-tight text-slate-950">운영</h1>
+          <p className="mt-1 text-[14px] font-medium text-slate-500">
             주문 접수부터 배송, 경로 최적화까지 운영 전 과정을 이 페이지에서 확인하고 관리하세요.
           </p>
         </div>
