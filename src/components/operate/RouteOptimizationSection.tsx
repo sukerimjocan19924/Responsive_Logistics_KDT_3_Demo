@@ -322,14 +322,14 @@ const RouteOptimizationSection = forwardRef<HTMLElement>((_props, ref) => {
         })}
       </div>
 
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-3">
+        <RouteHighlightBanner />
+      </div>
+
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <RecommendedRoutesCard />
         <RouteDetailCard />
         <RouteAnalysisCard />
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 lg:grid-cols-3">
-        <RouteHighlightBanner />
       </div>
     </section>
   )
