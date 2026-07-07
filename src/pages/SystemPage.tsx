@@ -8,18 +8,20 @@ import MessagePage from "./MessagePage";
 
 /** 사이드바 경로 → 내부 스크롤 대상 섹션 매핑 */
 const PATH_TO_SECTION: Record<string, string> = {
-  "/settings": "settings-section",
   "/messages": "messages-section",
+  "/settings": "settings-section",
 };
 
-/** 문서 순서에 맞춘 섹션 리스트 설정 (스크롤-스파이 기준) */
+/** * [수정] 실제 렌더링 문서 순서에 맞게 변경 (알림이 위, 설정이 아래)
+ * 스크롤-스파이가 올바른 순서로 하단 요소를 감지하기 위해 순서 정렬이 필수입니다.
+ */
 const SECTION_ORDER = [
-  { id: "settings-section", path: "/settings" },
   { id: "messages-section", path: "/messages" },
+  { id: "settings-section", path: "/settings" },
 ];
 
-const SCROLL_OFFSET = 24;
-const SPY_LINE_OFFSET = 120; // 상단 구분선 및 뱃지 높이를 고려한 기준선 피드백
+const SCROLL_OFFSET = 20;
+const SPY_LINE_OFFSET = 96;
 
 export default function SystemPage() {
   const location = useLocation();
@@ -27,16 +29,16 @@ export default function SystemPage() {
   
   // 스크롤 및 DOM 조작을 위한 Ref 선언
   const scrollRef = useRef<HTMLDivElement>(null);
-  const settingsRef = useRef<HTMLElement>(null);
   const messagesRef = useRef<HTMLElement>(null);
+  const settingsRef = useRef<HTMLElement>(null);
 
   const skipNextScrollRef = useRef(false);
   const isProgrammaticScrollRef = useRef(false);
   const activePathRef = useRef(location.pathname);
 
   const sectionRefs: Record<string, React.RefObject<HTMLElement>> = {
-    "settings-section": settingsRef,
     "messages-section": messagesRef,
+    "settings-section": settingsRef,
   };
 
   // 외부 및 사이드바 클릭으로 라우트 변경 시 activePathRef 동기화
@@ -59,11 +61,10 @@ export default function SystemPage() {
     const targetRect = target.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
     
-    // 첫 번째 섹션(설정)이면 top을 0으로 밀어 완전히 밀착, 그 외는 오프셋 반영
-    const isFirstSection = location.pathname === SECTION_ORDER[0].path;
-    const targetY = isFirstSection 
-      ? 0 
-      : Math.max(0, container.scrollTop + (targetRect.top - containerRect.top) - SCROLL_OFFSET);
+    const targetY = Math.max(
+      0, 
+      container.scrollTop + (targetRect.top - containerRect.top) - SCROLL_OFFSET
+    );
 
     if (Math.abs(container.scrollTop - targetY) < 1) return;
 
@@ -126,36 +127,25 @@ export default function SystemPage() {
   }, [navigate]);
 
   return (
-    // 내부 스크롤 격리를 위한 컨테이너 뷰포트 높이 설정
     <div ref={scrollRef} className="h-[calc(100vh-3.5rem)] overflow-y-auto bg-slate-50 lg:h-screen pb-16">
-      
-      {/* 상단 공통 브레드크럼 존 */}
-      <div className="mx-auto max-w-[1400px] px-4 pt-6 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2 text-[12px] text-slate-400">
-          <Link to="/" className="transition-colors hover:text-sky-600">대시보드</Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="font-medium text-slate-600">통합 관리 환경</span>
-        </div>
-      </div>
-
-      {/* SECTION 1: 알림 및 메시지 내역 */}
-      <section ref={messagesRef} id="messages-section">
+      {/* [수정] SECTION 1: 알림 및 메시지 내역 (위로 이동) */}
+      <section ref={messagesRef} id="messages-section" className="mt-2">
         <MessagePage />
       </section>
 
-      {/* MIDDLE SEPARATOR: 두 도메인을 이어주는 스크롤 유도 구분선 */}
+      {/* MIDDLE SEPARATOR: 두 도메인을 이어주는 스크롤 유도 구분선 (문구 변경) */}
       <div className="mx-auto max-w-[1400px] my-10 px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center py-5">
           <div className="flex-grow border-t border-slate-300/60"></div>
           <span className="mx-4 flex flex-shrink items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black tracking-widest text-slate-500 uppercase shadow-sm">
             <Bell className="h-3.5 w-3.5 text-slate-400 animate-pulse" />
-            Scroll Down to System Messages
+            Scroll Down to System Settings
           </span>
           <div className="flex-grow border-t border-slate-300/60"></div>
         </div>
       </div>
 
-      {/* SECTION 2: 시스템 설정 */}
+      {/* [수정] SECTION 2: 시스템 설정 (아래로 이동) */}
       <section ref={settingsRef} id="settings-section">
         <SettingPage />
       </section>
