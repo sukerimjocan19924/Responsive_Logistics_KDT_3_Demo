@@ -5,21 +5,17 @@ import {
   type NotificationItem,
   type SettingsState,
 } from "../data/messages"
-import TopBar from "../components/messages/TopBar"
 import MessageHeader from "../components/messages/MessageHeader"
 import KpiCards from "../components/messages/KpiCards"
 import FilterTabs from "../components/messages/FilterTabs"
 import NotificationList from "../components/messages/NotificationList"
-import SettingsPanel from "../components/messages/SettingsPanel"
 import Toast from "../components/messages/Toast"
 
-// 페이지네이션 테스트용 대량 샘플 데이터
 const LARGE_INITIAL_DATA: NotificationItem[] = [
   ...SEED,
   ...Array.from({ length: 80 }).map((_, index) => ({
     id: `generated-${index + 1}`,
-    // 📦 삼항 연산자 결과 뒤에 as const를 명시하여 "today" | "earlier" 타입으로 확정합니다.
-group: index % 2 === 0 ? ("today" as const) : ("earlier" as const),
+    group: index % 2 === 0 ? ("today" as const) : ("earlier" as const),
     category: ["temp", "expiry", "stock", "system"][index % 4] as any,
     severity: ["info", "warning", "urgent"][index % 3] as any,
     icon: SEED[index % SEED.length]?.icon || SEED[0].icon,
@@ -63,12 +59,17 @@ export default function MessagePage() {
     setMounted(true)
   }, [])
 
-  // 필터 조건 변경 시 페이지 번호 초기화
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [toast])
+
   useEffect(() => {
     setPage(1)
   }, [tab, query, severityFilter, sortBy, statusFilter])
 
-  // 상단 카운트 지표 계산
   const totalCount = items.length
   const unreadCount = items.filter((i) => i.unread).length
   const urgentCount = items.filter(
@@ -76,7 +77,6 @@ export default function MessagePage() {
   ).length
   const resolvedTodayCount = items.filter((i) => i.resolved).length + 34
 
-  // 조건 필터링 및 정렬 처리
   const filtered = useMemo(() => {
     let result = [...items]
 
@@ -106,7 +106,6 @@ export default function MessagePage() {
     return result
   }, [items, tab, query, severityFilter, sortBy, statusFilter])
 
-  // 페이지네이션 처리
   const PAGE_SIZE = 8
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -125,7 +124,6 @@ export default function MessagePage() {
   const allSelected =
     allVisibleIds.length > 0 && allVisibleIds.every((id) => selected.has(id))
 
-  // --- 이벤트 핸들러 핸들링 ---
   function toggleSelectAll() {
     setSelected((prev) => {
       const next = new Set(prev)
@@ -181,35 +179,30 @@ export default function MessagePage() {
     setToast(`처리되었습니다: ${action.label}`)
   }
 
-  function toggleSetting(key: keyof SettingsState) {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }))
-  }
-
   return (
     <div className="relative min-h-screen w-full bg-slate-50 p-4 sm:p-6 lg:p-8">
       <div className="relative z-10 mx-auto max-w-6xl">
-        <TopBar
-          query={query}
-          onQueryChange={(val) => setQuery(val)}
-          mounted={mounted}
-        />
-
-        <MessageHeader
-          mounted={mounted}
-          onMarkAllRead={markAllRead}
-          filterOpen={filterOpen}
-          onToggleFilter={() => setFilterOpen((v) => !v)}
-          severityFilter={severityFilter}
-          onToggleSeverity={(key) =>
-            setSeverityFilter((prev) => {
-              const n = new Set(prev);
-              n.has(key) ? n.delete(key) : n.add(key);
-              return n;
-            })
-          }
-          onClearSeverity={() => setSeverityFilter(new Set())}
-          onOpenSettings={() => setSettingsOpen(true)}
-        />
+        
+        {/* 드롭다운의 높은 상위 z-index 스태킹 맥락 형성 컨테이너 */}
+        <div className="relative z-50 mb-6">
+          <MessageHeader
+            mounted={mounted}
+            onMarkAllRead={markAllRead}
+            filterOpen={filterOpen}
+            onToggleFilter={() => setFilterOpen((v) => !v)}
+            severityFilter={severityFilter}
+            onToggleSeverity={(key) =>
+              setSeverityFilter((prev) => {
+                const n = new Set(prev)
+                n.has(key) ? n.delete(key) : n.add(key)
+                return n
+              })
+            }
+            onClearSeverity={() => setSeverityFilter(new Set())}
+            query={query}
+            onQueryChange={setQuery}
+            />
+        </div>
 
         <KpiCards
           totalCount={totalCount}
@@ -229,7 +222,7 @@ export default function MessagePage() {
           onStatusFilterChange={setStatusFilter}
         />
 
-        {/* 심플 제어 컨트롤러 영역 (오른쪽 정렬 고정) */}
+
         <div className="mb-3 flex justify-end">
           {selected.size > 0 && (
             <div className="flex items-center gap-2 rounded-xl bg-sky-50 border border-sky-100 p-1.5 px-3">
@@ -269,13 +262,6 @@ export default function MessagePage() {
         />
       </div>
 
-      <SettingsPanel
-        open={settingsOpen}
-        settings={settings}
-        onToggle={toggleSetting}
-        onClose={() => setSettingsOpen(false)}
-        onSave={() => setSettingsOpen(false)}
-      />
       <Toast message={toast} />
     </div>
   )

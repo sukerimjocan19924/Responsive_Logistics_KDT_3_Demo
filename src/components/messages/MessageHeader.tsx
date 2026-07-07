@@ -1,16 +1,9 @@
-import { CheckCheck, Filter, Settings } from 'lucide-react'
-import { SEVERITY_FILTER_OPTIONS, TONE } from '../../data/messages'
+import { Search, CheckCheck, Filter } from 'lucide-react'
+import { SEVERITY_FILTER_OPTIONS } from '../../data/messages'
 
-export default function MessageHeader({
-  mounted,
-  onMarkAllRead,
-  filterOpen,
-  onToggleFilter,
-  severityFilter,
-  onToggleSeverity,
-  onClearSeverity,
-  onOpenSettings,
-}: {
+interface MessageHeaderProps {
+  query: string
+  onQueryChange: (value: string) => void
   mounted: boolean
   onMarkAllRead: () => void
   filterOpen: boolean
@@ -18,30 +11,67 @@ export default function MessageHeader({
   severityFilter: Set<string>
   onToggleSeverity: (key: string) => void
   onClearSeverity: () => void
-  onOpenSettings: () => void
-}) {
+}
+
+export default function MessageHeader({
+  query,
+  onQueryChange,
+  mounted,
+  onMarkAllRead,
+  filterOpen,
+  onToggleFilter,
+  severityFilter,
+  onToggleSeverity,
+  onClearSeverity,
+}: MessageHeaderProps) {
   return (
     <div
-      className={`relative z-[50] mb-6 flex flex-col gap-4 transition-all delay-75 duration-500 sm:flex-row sm:items-end sm:justify-between ${
-        mounted ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+      className={`mb-8 border-b border-slate-200/60 pb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between transition-all duration-500 ${
+        mounted ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
       }`}
     >
-      <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-[28px]">알림 센터</h1>
-        <p className="mt-1 text-sm text-slate-500">실시간 시스템 알림을 확인하고 관리할 수 있습니다.</p>
+      {/* 1. 왼쪽 영역 */}
+      <div className="shrink-0">
+        <h1 className="flex items-center gap-3 text-[32px] font-black tracking-tight text-slate-900 sm:text-[36px]">
+          <span className="bg-gradient-to-r from-sky-500 to-indigo-500 bg-clip-text text-transparent">
+            알림
+          </span>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-[12px] font-bold tracking-[0.2em] text-slate-500 uppercase">
+            Notifications
+          </span>
+        </h1>
+        <p className="mt-2 text-[15px] font-medium text-slate-500">
+          실시간 WMS 시스템 알림을 확인하고 신속하게 예외 상황을 관리하세요.
+        </p>
       </div>
-      <div className="flex flex-wrap gap-2">
+
+      {/* 2. 오른쪽 영역 */}
+      <div className="flex flex-wrap items-center gap-2 lg:justify-end w-full lg:w-auto lg:self-end">
+        
+        {/* 검색 인풋 창 */}
+        <div className="relative w-full sm:w-52 md:w-60">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            placeholder="알림 검색..."
+            className="h-10 w-full rounded-xl border border-slate-200 bg-white/70 pl-9 pr-3 text-sm text-slate-700 outline-none backdrop-blur transition-colors placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
+          />
+        </div>
+
+        {/* 모두 읽음 버튼 */}
         <button
           onClick={onMarkAllRead}
-          className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-4 text-sm font-semibold text-slate-600 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-sky-200 hover:text-sky-600 hover:shadow-md"
+          className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 px-3.5 text-sm font-semibold text-slate-600 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-sky-200 hover:text-sky-600 hover:shadow-md"
         >
           <CheckCheck className="h-4 w-4" /> 모두 읽음
         </button>
 
+        {/* 필터 설정 및 드롭다운 */}
         <div className="relative">
           <button
             onClick={onToggleFilter}
-            className={`flex h-10 items-center gap-1.5 rounded-xl border px-4 text-sm font-semibold backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md ${
+            className={`flex h-10 items-center gap-1.5 rounded-xl border px-3.5 text-sm font-semibold backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md ${
               filterOpen
                 ? 'border-sky-300 bg-sky-50 text-sky-600'
                 : 'border-slate-200 bg-white/80 text-slate-600 hover:border-sky-200 hover:text-sky-600'
@@ -49,30 +79,43 @@ export default function MessageHeader({
           >
             <Filter className="h-4 w-4" /> 필터
           </button>
-          
+
           {filterOpen && (
-            /* FIX: 
-              - 모바일(기본): left-0 right-auto로 설정하여 왼쪽 기준으로 카드가 열려 잘림 현상 방지
-              - 데스크톱(sm:): sm:right-0 sm:left-auto로 변경하여 우측 정렬 유지
-              - 모바일에서 부드럽게 열리도록 원점(origin)도 origin-top-left -> sm:origin-top-right로 대응
-            */
-            <div className="absolute left-0 right-auto sm:right-0 sm:left-auto z-[50] mt-2 w-56 origin-top-left sm:origin-top-right animate-[pop_0.15s_ease-out] rounded-2xl border border-slate-100 bg-white p-3 shadow-xl shadow-slate-900/10">
-              <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wide text-slate-400">심각도</p>
-              {SEVERITY_FILTER_OPTIONS.map((s) => (
-                <label
-                  key={s.key}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
-                >
-                  <input
-                    type="checkbox"
-                    checked={severityFilter.has(s.key)}
-                    onChange={() => onToggleSeverity(s.key)}
-                    className="h-3.5 w-3.5 accent-sky-500"
-                  />
-                  <span className={`h-2 w-2 rounded-full ${TONE[s.tone].dot}`} />
-                  {s.label}
-                </label>
-              ))}
+            <div
+              /* 🛠️ 완벽한 모바일 대응 정렬 클래스로 수정 */
+              className="absolute z-50 mt-2 w-56 rounded-2xl border border-slate-100 bg-white p-3 shadow-xl shadow-slate-900/10 [animation:pop_0.15s_ease-out]
+                /* 📱 모바일: 버튼 왼쪽 정렬 기준 고정 (오른쪽으로 펼쳐져서 왼쪽 잘림 방지) */
+                left-0 right-auto origin-top-left
+                /* 🖥️ 데스크톱(lg 이상): 버튼 우측 정렬 기준으로 복귀 */
+                lg:left-auto lg:right-0 lg:origin-top-right"
+              style={{
+                animationName: 'pop',
+                animationKeyframes:
+                  '@keyframes pop { from { opacity: 0; transform: scale(0.95) translateY(-4px); } to { opacity: 1; transform: scale(1) translateY(0); } }',
+              } as any}
+            >
+              <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wide text-slate-400">
+                심각도
+              </p>
+
+              <div className="flex flex-col gap-0.5">
+                {SEVERITY_FILTER_OPTIONS.map((s) => (
+                  <label
+                    key={s.key}
+                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={severityFilter.has(s.key)}
+                      onChange={() => onToggleSeverity(s.key)}
+                      className="h-3.5 w-3.5 accent-sky-500"
+                    />
+                    <span className={`h-2 w-2 rounded-full bg-${s.tone}-500`} />
+                    {s.label}
+                  </label>
+                ))}
+              </div>
+
               {severityFilter.size > 0 && (
                 <button
                   onClick={onClearSeverity}
@@ -81,17 +124,10 @@ export default function MessageHeader({
                   초기화
                 </button>
               )}
-              <style>{`@keyframes pop { from { opacity: 0; transform: scale(0.95) translateY(-4px); } to { opacity: 1; transform: scale(1) translateY(0); } }`}</style>
             </div>
           )}
         </div>
 
-        <button
-          onClick={onOpenSettings}
-          className="flex h-10 items-center gap-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-sky-600 px-4 text-sm font-bold text-white shadow-md shadow-sky-500/20 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/30"
-        >
-          <Settings className="h-4 w-4" /> 알림 설정
-        </button>
       </div>
     </div>
   )
